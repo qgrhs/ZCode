@@ -98,6 +98,7 @@ import {
   zcodeWorkspaceHookTrustGrantResultSchema,
   zcodeWorkspaceUpdateInteractionPreferencesResultSchema,
   zcodeWorkspaceUpdateModelIoPreferencesResultSchema,
+  zcodeWorkspaceUpdateCompactPreferencesResultSchema,
   zcodeProviderUpdateAccountConfigResultSchema,
   type ZCodeSessionStateSnapshot,
   type ZCodeAutomation,
@@ -437,6 +438,14 @@ function isProtocolMethodNotFoundError(error: unknown): boolean {
     "code" in error &&
     (error as { code?: unknown }).code === -32601
   );
+}
+
+/** 压缩阈值百分比归一化：非有限值/越界/≥100 一律回落到 100（默认策略）。 */
+function normalizeCompactThresholdPercent(value: number | undefined): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) return 100;
+  const floored = Math.floor(value);
+  if (floored >= 100) return 100;
+  return Math.min(Math.max(floored, 1), 99);
 }
 
 function buildWorkspaceRef(params: ZCodeAgentWorkspaceTarget): ZCodeWorkspaceRef {
@@ -1490,6 +1499,24 @@ export function createZCodeAgentService(
           // 新 Host 兼容尚未升级的 CLI：只有 method-not-found 可降级，其他同步失败仍需上抛。
           if (!isProtocolMethodNotFoundError(error)) throw error;
         }
+        try {
+          await params.client.request(
+            zcodeProtocolMethods.workspaceUpdateCompactPreferences,
+            {
+              workspace: buildWorkspaceRef(params.workspace),
+              preferences: {
+                // 归一化到协议值域：缺失或非法值都回落到 100（默认策略）。
+                thresholdPercent: normalizeCompactThresholdPercent(
+                  params.preferences.compactThresholdPercent,
+                ),
+              },
+            },
+            zcodeWorkspaceUpdateCompactPreferencesResultSchema,
+          );
+        } catch (error) {
+          // 同 ModelIO：旧 CLI 没有该方法时静默降级，其余失败仍上抛。
+          if (!isProtocolMethodNotFoundError(error)) throw error;
+        }
       });
     interactionPreferenceSyncByWorkspaceKey.set(workspaceKey, current);
     void current.then(
@@ -2141,6 +2168,7 @@ export function createZCodeAgentService(
                     askUserQuestionAutoResolutionEnabled: true,
                     nativeSearchEnhancementsEnabled: true,
                     memoryEnabled: false,
+                    compactThresholdPercent: 100,
                   },
                 );
               } catch (error) {
@@ -3400,6 +3428,9 @@ export function createZCodeAgentService(
       const normalizedPreferences: ZCodeAgentAppRuntimePreferences = {
         ...preferences,
         modelIoFullRetentionEnabled: preferences.modelIoFullRetentionEnabled === true,
+        compactThresholdPercent: normalizeCompactThresholdPercent(
+          preferences.compactThresholdPercent,
+        ),
       };
       latestAppRuntimePreferences = normalizedPreferences;
       const activeClients = [...activeClientsByWorkspaceKey.values()];

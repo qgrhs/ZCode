@@ -321,6 +321,7 @@ export function createBotRemoteWorkspaceService(params: {
             askUserQuestionAutoResolutionEnabled:
               settings.askUserQuestionAutoResolutionEnabled !== false,
             modelIoFullRetentionEnabled: settings.modelIoFullRetentionEnabled === true,
+            compactThresholdPercent: settings.compactThresholdPercent ?? 100,
           }));
       await services.zcodeAgentService.syncAppRuntimePreferences(preferences);
       if (revision === appRuntimePreferencesRevision) {

@@ -551,6 +551,8 @@ export type ZCodeAgentServiceEvent =
 export interface ZCodeAgentAppRuntimePreferences {
   askUserQuestionAutoResolutionEnabled: boolean;
   modelIoFullRetentionEnabled?: boolean;
+  /** 自动压缩触发百分比（1-100）；100 或缺失表示跟随 CLI 默认策略。 */
+  compactThresholdPercent?: number;
 }
 
 export interface ZCodeAgentLocalRuntimeChildProcesses {
