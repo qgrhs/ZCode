@@ -182,33 +182,32 @@ export function useModelProviderNavigation({
       {
         id: "preset",
         title: intl.formatMessage({ id: "settings.modelProvider.presetTitle" }),
-        items: [
-          ...presetProviders.map(({ id, displayName, provider }) => {
-            const statusProvider = resolvePresetFamilyStatusProvider({
-              presetId: id,
-              provider,
-              connectionModeItems: connectionModeCodingPlanItems,
-              connectionSelections,
-              modelProviders,
-            });
-            return {
-              key: createPresetProviderNodeKey(id),
-              type: "preset" as const,
-              presetId: id,
-              label: displayName,
-              logo: modelProviders.find(
-                (candidate) =>
-                  candidate.providerId ===
-                  resolveModelProviderFamilySpecByProviderId(id)?.individualCodingPlanProviderId,
-              )?.config.logo,
-              provider,
-              displayName,
-              statusProvider,
-              statusActive: statusProvider?.executable === true,
-            };
-          }),
-          ...codingPlanItems.filter((item) => isStartPlanModelProviderId(item.presetId)),
-        ],
+        // 智谱预设项已下架（见 constants.ts 说明）：不再注入 Start Plan 入口。
+        // PRESET_PROVIDER_SPECS 为空时此处自然为空数组，由 Navigation 的空组过滤隐藏。
+        items: presetProviders.map(({ id, displayName, provider }) => {
+          const statusProvider = resolvePresetFamilyStatusProvider({
+            presetId: id,
+            provider,
+            connectionModeItems: connectionModeCodingPlanItems,
+            connectionSelections,
+            modelProviders,
+          });
+          return {
+            key: createPresetProviderNodeKey(id),
+            type: "preset" as const,
+            presetId: id,
+            label: displayName,
+            logo: modelProviders.find(
+              (candidate) =>
+                candidate.providerId ===
+                resolveModelProviderFamilySpecByProviderId(id)?.individualCodingPlanProviderId,
+            )?.config.logo,
+            provider,
+            displayName,
+            statusProvider,
+            statusActive: statusProvider?.executable === true,
+          };
+        }),
       },
       {
         id: "custom",
@@ -303,17 +302,24 @@ export function useModelProviderNavigation({
     selectedNodeKey,
     selectableNavigationItems,
   });
+  // 兜底键必须真实存在于侧栏，否则详情永远解析不出选中项：
+  // 预置分组下架后，连接方式项（codingPlan/teamPlan）会被映射成 preset:startPlan 键，
+  // 而该 preset 已不在侧栏列表中，直接使用会陷入「设置选中 → 找不到 → 再设置」的循环。
+  const resolvedFallbackNodeKey =
+    fallbackNodeKey !== null && sideNavigationItemByKey.has(fallbackNodeKey)
+      ? fallbackNodeKey
+      : (selectableSideNavigationItems[0]?.key ?? null);
   useEffect(() => {
     const hasSelectedNode = selectedNodeKey ? sideNavigationItemByKey.has(selectedNodeKey) : false;
     if (hasSelectedNode) {
       return;
     }
 
-    if (selectedNodeKey !== fallbackNodeKey) {
-      setSelectedNodeKey(fallbackNodeKey);
+    if (selectedNodeKey !== resolvedFallbackNodeKey) {
+      setSelectedNodeKey(resolvedFallbackNodeKey);
     }
   }, [
-    fallbackNodeKey,
+    resolvedFallbackNodeKey,
     selectedNavItem,
     selectedNodeKey,
     setSelectedNodeKey,
@@ -500,7 +506,13 @@ function pickInitialConnectionNavigationItem(
   if (planItems[0]) {
     return planItems[0];
   }
-  return selectableNavigationItems.find((item) => item.type === "preset") ?? null;
+  // 智谱预置项下架后（见 constants.ts），preset/plan 可能全为空。
+  // 此时必须回退到第一个自定义供应商，否则右侧详情会一直停在加载态。
+  return (
+    selectableNavigationItems.find((item) => item.type === "preset") ??
+    selectableNavigationItems.find((item) => item.type === "custom") ??
+    null
+  );
 }
 
 function pickFamilyModeNavigationItem(

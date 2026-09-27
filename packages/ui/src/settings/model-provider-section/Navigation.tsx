@@ -387,7 +387,8 @@ export function ModelProviderSectionNavigation({
     <aside className="px-1.5 py-3 md:py-2 md:px-2">
       <div className="flex min-h-0 flex-col gap-3 max-md:gap-1">
         {navigationGroups
-          .filter((group) => group.id !== "custom" || group.items.length > 0)
+          // 空分组（如下架后的智谱预置组）不渲染，避免只剩一个空标题。
+          .filter((group) => group.items.length > 0)
           .map((group) => (
             <div key={group.id} className="flex flex-col gap-2 max-md:gap-1">
               <div className="flex h-7 items-center justify-between px-2 py-1 max-md:hidden">
