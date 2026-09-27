@@ -68,6 +68,11 @@ export interface AgentRuntimeCoreMethods {
   updateConfig(
     patch: Pick<AgentRuntimeConfig, "mode" | "planEnabled" | "language" | "outputStyle">,
   ): void;
+  /**
+   * 热更新自动压缩阈值百分比：100 表示恢复默认策略（有效窗口减安全缓冲），
+   * 1-99 表示按完整上下文窗口占比提前触发。只改阈值，不影响其他 compact 配置。
+   */
+  setCompactThresholdPercent(thresholdPercent: number): void;
   initializeSessionShellEnvironmentIfNeeded(
     selection: ExecutionShellSelection | (() => ExecutionShellSelection),
   ): boolean;

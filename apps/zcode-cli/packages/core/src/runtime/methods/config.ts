@@ -70,6 +70,26 @@ export function updateConfig(
   }
 }
 
+/**
+ * 热更新自动压缩阈值百分比。
+ * 1-99 按完整上下文窗口占比提前触发压缩；100（或越界值）恢复默认策略。
+ * 压缩决策在每个 model step 前读取 this.config.compact，因此这里只改配置即可，
+ * 无需重建上下文前缀，也不影响进行中的模型请求。
+ */
+export function setCompactThresholdPercent(
+  this: AgentRuntimeInternal,
+  thresholdPercent: number,
+): void {
+  const normalized =
+    Number.isFinite(thresholdPercent) && thresholdPercent >= 1 && thresholdPercent < 100
+      ? Math.floor(thresholdPercent)
+      : 100;
+  this.config.compact = {
+    ...this.config.compact,
+    thresholdPercentOverride: normalized,
+  };
+}
+
 export function initializeSessionShellEnvironmentIfNeeded(
   this: AgentRuntimeInternal,
   selection: SessionShellEnvironmentCandidate,

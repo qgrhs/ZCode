@@ -341,6 +341,8 @@ export interface AgentRuntime {
   updateConfig(
     patch: Pick<AgentRuntimeConfig, "mode" | "planEnabled" | "language" | "outputStyle">,
   ): void;
+  /** 热更新自动压缩阈值百分比；100 表示恢复默认策略。 */
+  setCompactThresholdPercent(thresholdPercent: number): void;
   initializeSessionShellEnvironmentIfNeeded(
     selection: ExecutionShellSelection | (() => ExecutionShellSelection),
   ): boolean;
