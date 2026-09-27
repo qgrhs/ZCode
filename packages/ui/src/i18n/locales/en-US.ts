@@ -4218,20 +4218,15 @@ const enUS: Record<string, string> = {
   "settings.commands.description":
     "Manage ZCode Agent .md command files. Commands can be invoked with /command-name in chat.",
   "settings.compact.title": "Compaction",
-  "settings.compact.description":
-    "Configure when context auto-compaction triggers. Set a custom threshold as a percentage of the model context window to avoid failed compactions in long sessions.",
+  "settings.compact.description": "Configure when auto-compaction triggers.",
   "settings.compact.customEnabled": "Custom compaction threshold",
-  "settings.compact.customEnabledDescription":
-    "When on, auto-compaction triggers earlier at the chosen share of the context window; when off, the default policy applies (reserve output headroom before the window limit).",
+  "settings.compact.customEnabledDescription": "Trigger earlier by window share.",
   "settings.compact.thresholdPercent": "Trigger threshold",
-  "settings.compact.thresholdPercentDescription":
-    "Auto-compaction triggers when context usage reaches this percentage of the full window. 60-80 is recommended; lower values compact often, higher values risk hitting the window limit.",
+  "settings.compact.thresholdPercentDescription": "Fires at this share of the window. 60-80 recommended.",
   "settings.compact.currentBehavior": "Current behavior",
-  "settings.compact.currentBehaviorDescription":
-    "Changes apply to new sessions and are synced to running sessions immediately.",
-  "settings.compact.currentBehaviorCustom": "Auto-compact at {percent}% of the context window",
-  "settings.compact.currentBehaviorDefault":
-    "Default policy: auto-compact near the context window limit",
+  "settings.compact.currentBehaviorDescription": "Applies to new and running sessions.",
+  "settings.compact.currentBehaviorCustom": "Auto-compact at {percent}% of the window",
+  "settings.compact.currentBehaviorDefault": "Auto-compact near the window limit",
   "settings.commands.sourceFilterLabel": "Source filter",
   "settings.commands.source.zcodeAgent": "ZCode Agent",
   "settings.commands.add": "New",

@@ -99,7 +99,7 @@ export function CompactSettingsSection({
         label={intl.formatMessage({ id: "settings.compact.currentBehavior" })}
         description={intl.formatMessage({ id: "settings.compact.currentBehaviorDescription" })}
         control={
-          <span className="text-ui-base text-foreground-subtle">
+          <span className="whitespace-nowrap text-ui-base text-foreground-subtle">
             {customEnabled
               ? intl.formatMessage(
                   { id: "settings.compact.currentBehaviorCustom" },
