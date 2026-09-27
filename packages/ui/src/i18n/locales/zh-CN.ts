@@ -2574,6 +2574,10 @@ const zhCN: Record<string, string> = {
   "settings.modelProvider.catalogProviderSearch": "搜索供应商",
   "settings.modelProvider.catalogProviderEmpty": "未找到供应商",
   "settings.modelProvider.addProviderAction": "添加供应商",
+  "settings.modelProvider.emptyStateTitle": "还没有配置模型供应商",
+  "settings.modelProvider.emptyStateDescription":
+    "添加一个供应商（API Key 或第三方网关）后，即可在聊天时选择模型使用。",
+  "settings.modelProvider.emptyStateAction": "添加第一个供应商",
   "settings.modelProvider.templatePickerTitle": "添加供应商",
   "settings.modelProvider.templateGroup.zhipu": "智谱",
   "settings.modelProvider.templateGroup.other": "其他",

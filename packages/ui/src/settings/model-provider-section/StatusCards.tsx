@@ -114,6 +114,28 @@ export function ModelProviderLoadingCard({ loadingLabel }: { loadingLabel: strin
   );
 }
 
+/**
+ * 模型供应商空态：预置订阅下架且用户未配置任何供应商时，
+ * 不能继续显示加载卡片（会让人误以为页面卡死），改为引导添加第一个供应商。
+ */
+export function ModelProviderEmptyCard({ onAddProvider }: { onAddProvider: () => void }) {
+  const { intl } = useZCodeIntl();
+
+  return (
+    <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-surface px-6 py-10 text-center">
+      <div className="text-ui-lg font-semibold text-foreground">
+        {intl.formatMessage({ id: "settings.modelProvider.emptyStateTitle" })}
+      </div>
+      <div className="max-w-md text-ui-base leading-6 text-foreground-subtle">
+        {intl.formatMessage({ id: "settings.modelProvider.emptyStateDescription" })}
+      </div>
+      <Button type="button" size="lg" onClick={onAddProvider}>
+        {intl.formatMessage({ id: "settings.modelProvider.emptyStateAction" })}
+      </Button>
+    </div>
+  );
+}
+
 export function PresetProviderPlaceholderCard({
   displayName,
   messageId = "settings.modelProvider.presetEmpty",

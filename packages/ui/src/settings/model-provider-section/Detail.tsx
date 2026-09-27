@@ -28,6 +28,7 @@ import {
 import { InlineEditableProviderCard } from "./InlineEditableProviderCard.js";
 import {
   ModelProviderLoadingCard,
+  ModelProviderEmptyCard,
   PresetProviderPlaceholderCard,
   CodingPlanStatusPanel,
 } from "./StatusCards.js";
@@ -251,6 +252,7 @@ export function ModelProviderSectionDetail({
   onOpenBigModelRegistration,
   onCodingPlanPurchaseComplete,
   onSelectNavItem,
+  onAddProvider,
   providerSettingsView: providerSettingsViewOverride,
 }: {
   selectedNavItem: ModelProviderNavItem | null;
@@ -300,6 +302,8 @@ export function ModelProviderSectionDetail({
   onOpenBigModelRegistration: () => void;
   onCodingPlanPurchaseComplete: () => void | Promise<void>;
   onSelectNavItem?: (item: ModelProviderNavItem) => void;
+  /** 空态引导：无任何供应商时点击「添加第一个供应商」的入口（打开模板选择器）。 */
+  onAddProvider: () => void;
   providerSettingsView?: ProviderSettingsView | null;
 }) {
   const { intl } = useZCodeIntl();
@@ -391,6 +395,11 @@ export function ModelProviderSectionDetail({
   }, [selectedItemKey]);
 
   if (!selectedNavItem) {
+    // 侧栏一个可选供应商都没有（预置订阅下架 + 用户未配置）：显示空态引导，
+    // 不能无限转圈让人误以为页面卡死。仍有导航项时说明选中解析还在进行，继续显示加载。
+    if (navigationItems.length === 0 && !presetLoading) {
+      return <ModelProviderEmptyCard onAddProvider={onAddProvider} />;
+    }
     return <ModelProviderLoadingCard loadingLabel={loadingLabel} />;
   }
 
