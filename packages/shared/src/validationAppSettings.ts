@@ -453,6 +453,9 @@ const appSettingsObjectSchema = z.object({
   zcodeInteractionBehavior: zcodeInteractionBehaviorSchema.default("queue"),
   askUserQuestionAutoResolutionEnabled: z.boolean().default(true),
   modelIoFullRetentionEnabled: z.boolean().default(false),
+  // 自动压缩触发百分比：1-99 表示完整上下文窗口的占比阈值，100 表示跟随默认策略
+  // （有效窗口减安全缓冲）。取值范围与 CLI policy 的 thresholdPercentOverride 对齐。
+  compactThresholdPercent: z.number().int().min(1).max(100).default(100),
   startPlanRecommendationDismissed: z.boolean().default(false),
   providerFamilyConnectionSelections: providerFamilyConnectionSelectionSettingsSchema.default({}),
   providerFamilyDomain: providerFamilyDomainSchema.optional(),
@@ -521,6 +524,7 @@ export const appSettingsPatchSchema = z.object({
   zcodeInteractionBehavior: zcodeInteractionBehaviorSchema.optional(),
   askUserQuestionAutoResolutionEnabled: z.boolean().optional(),
   modelIoFullRetentionEnabled: z.boolean().optional(),
+  compactThresholdPercent: z.number().int().min(1).max(100).optional(),
   startPlanRecommendationDismissed: z.boolean().optional(),
   providerFamilyConnectionSelections: providerFamilyConnectionSelectionSettingsSchema.optional(),
   providerFamilyDomain: z.union([providerFamilyDomainSchema, z.literal("")]).optional(),

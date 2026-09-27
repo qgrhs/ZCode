@@ -7,6 +7,8 @@ export const appRuntimePreferencesChangedBroadcastPayloadSchema = z
   .object({
     askUserQuestionAutoResolutionEnabled: z.boolean(),
     modelIoFullRetentionEnabled: z.boolean().default(false),
+    // 自动压缩触发百分比；100 表示默认策略。缺省兼容旧版广播不携带该字段。
+    compactThresholdPercent: z.number().int().min(1).max(100).default(100),
   })
   .strict();
 

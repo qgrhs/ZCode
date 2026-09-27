@@ -1710,6 +1710,8 @@ export const zcodeSessionRuntimePreferencesResultSchema = z
     modelContextBudgetStrategy: zcodeModelContextBudgetStrategySchema.default(
       DEFAULT_ZCODE_MODEL_CONTEXT_BUDGET_STRATEGY,
     ),
+    // 自动压缩触发百分比；100 或缺省表示默认策略。旧 Host 不返回该字段时按 100 处理。
+    compactThresholdPercent: z.number().int().min(1).max(100).default(100),
   })
   .strict();
 export type ZCodeSessionRuntimePreferencesResult = z.infer<
@@ -2232,6 +2234,39 @@ export const zcodeWorkspaceUpdateModelIoPreferencesResultSchema = z
   .strict();
 export type ZCodeWorkspaceUpdateModelIoPreferencesResult = z.infer<
   typeof zcodeWorkspaceUpdateModelIoPreferencesResultSchema
+>;
+
+/**
+ * 自动压缩触发百分比偏好。
+ * thresholdPercent = 100 表示跟随 CLI 默认策略（有效窗口减安全缓冲）；
+ * 1-99 表示按完整上下文窗口的占比提前触发自动压缩。
+ */
+export const zcodeCompactPreferencesSchema = z
+  .object({
+    thresholdPercent: z.number().int().min(1).max(100),
+  })
+  .strict();
+export type ZCodeCompactPreferences = z.infer<typeof zcodeCompactPreferencesSchema>;
+
+export const zcodeWorkspaceUpdateCompactPreferencesParamsSchema = z
+  .object({
+    workspace: zcodeWorkspaceRefSchema,
+    preferences: zcodeCompactPreferencesSchema,
+  })
+  .strict();
+export type ZCodeWorkspaceUpdateCompactPreferencesParams = z.infer<
+  typeof zcodeWorkspaceUpdateCompactPreferencesParamsSchema
+>;
+
+export const zcodeWorkspaceUpdateCompactPreferencesResultSchema = z
+  .object({
+    workspace: zcodeWorkspaceRefSchema,
+    thresholdPercent: z.number().int().min(1).max(100),
+    updatedSessionCount: z.number().int().nonnegative(),
+  })
+  .strict();
+export type ZCodeWorkspaceUpdateCompactPreferencesResult = z.infer<
+  typeof zcodeWorkspaceUpdateCompactPreferencesResultSchema
 >;
 
 export const zcodeWorkspaceUpdateOffPeakToolPolicyParamsSchema = z
@@ -3603,6 +3638,8 @@ export const zcodeProtocolMethods = {
   providerUpdateAccountConfig: "provider/updateAccountConfig",
   workspaceUpdateInteractionPreferences: "workspace/updateInteractionPreferences",
   workspaceUpdateModelIoPreferences: "workspace/updateModelIoPreferences",
+  // 自动压缩阈值偏好：与 ModelIO 同模式，Host 在 settings 变化时同步给 Agent 进程。
+  workspaceUpdateCompactPreferences: "workspace/updateCompactPreferences",
   // Off-Peak 工具面门禁是 workspace 级事实（灰度 + 本地/远程），由 host 在 agent 就绪时同步；
   // CLI 对 legacy create/resume 与 v4 冷恢复统一读取。旧 CLI method-not-found → host 降级忽略。
   workspaceUpdateOffPeakToolPolicy: "workspace/updateOffPeakToolPolicy",

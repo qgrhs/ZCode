@@ -311,6 +311,12 @@ export interface AppSettings {
   askUserQuestionAutoResolutionEnabled?: boolean;
   /** 是否完整保留 Model I/O；开启后不轮转、不限额重置、不压缩或裁剪，鉴权信息仍会脱敏。 */
   modelIoFullRetentionEnabled?: boolean;
+  /**
+   * 自动压缩触发百分比（1-100）。
+   * 1-99：上下文用量达到完整窗口的该比例时触发自动压缩；
+   * 100 或缺省：跟随默认策略（有效窗口扣除输出预留与安全缓冲后触发）。
+   */
+  compactThresholdPercent?: number;
   /** 设置页中每个 Provider Family 当前唯一的结构化连接选择。 */
   providerFamilyConnectionSelections?: ProviderFamilyConnectionSelectionSettings;
   /** 用户通过 WelcomeScreen 成功连接后确认的 ZAI / BigModel provider family 运行域。 */
