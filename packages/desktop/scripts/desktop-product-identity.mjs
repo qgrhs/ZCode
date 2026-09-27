@@ -5,12 +5,14 @@
  */
 export const ZCODE_PREVIEW_IDENTITY_ENV = "ZCODE_PREVIEW_IDENTITY";
 
+// 本 fork 的桌面产物统一命名为 zcode-dev：使用独立 appId 与运行时数据目录，
+// 与官方 ZCode 并排安装时互不覆盖、不抢单实例锁。
 const PRODUCTION_IDENTITY = Object.freeze({
   flavor: "production",
-  appId: "dev.zcode.app",
-  productName: "ZCode",
-  linuxExecutableName: "zcode",
-  linuxPackageName: "zcode",
+  appId: "dev.zcode.app.dev",
+  productName: "zcode-dev",
+  linuxExecutableName: "zcode-dev",
+  linuxPackageName: "zcode-dev",
   cuaHelperInstallVariant: null,
 });
 
