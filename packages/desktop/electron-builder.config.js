@@ -67,6 +67,7 @@ import {
   patchNsisInstallSectionFile,
   restoreNsisInstallSectionFileSync,
 } from "./scripts/patch-nsis-install-section.mjs";
+import { patchWindowsExeMetadata } from "./scripts/patch-windows-exe-metadata.mjs";
 
 const buildMetadata = getBuildMetadata();
 const targetPlatform = getTargetPlatform();
@@ -84,6 +85,10 @@ const macSigningIdentity =
   rawMacSigningIdentity?.replace(/^Developer ID Application:\s*/, "") ?? null;
 const shouldEnableMacSigning =
   process.env.ZCODE_ENABLE_MAC_SIGN === "1" && Boolean(macSigningIdentity);
+// winCodeSign 死局的应急开关：本地打包关闭 electron-builder 的 rcedit 调用，改由
+// afterPack 钩子用缓存内的 rcedit 补齐元数据（见 scripts/patch-windows-exe-metadata.mjs）。
+// 两者必须成对理解：开关关闭 → 钩子补；开关打开（分发构建）→ electron-builder 自己改，钩子跳过。
+const shouldEditWindowsExeResources = process.env.ZCODE_EDIT_WINDOWS_EXE_RESOURCES === "1";
 const workspaceRoot = resolve(import.meta.dirname, "../..");
 const desktopPackageRoot = import.meta.dirname;
 const runtimeModuleLookupRoots = [
@@ -567,6 +572,13 @@ export default {
         writeWindowsInstallManifest(context),
       );
     }
+    // win.signAndEditExecutable 关闭后 electron-builder 不再改 exe 资源，产物会保持
+    // Electron 原生图标与 "Electron / GitHub, Inc." 元数据。这里用缓存内 rcedit 补齐，
+    // 把上一轮“手动跑一次 rcedit”固化成构建步骤（开关打开时 electron-builder 自己改，
+    // 此处再改会破坏后续签名，因此严格互斥）。
+    if (context.electronPlatformName === "win32" && !shouldEditWindowsExeResources) {
+      runTimedSync("afterPack:patchWindowsExeMetadata", () => patchWindowsExeMetadata(context));
+    }
   },
   extraResources: [
     { from: resolve(workspaceRoot, noticesFileName), to: noticesFileName },
@@ -693,10 +705,12 @@ export default {
   win: {
     target: ["nsis"],
     artifactName: buildDesktopArtifactName("win"),
-    // 本地打包临时开关：rcedit 改 exe 元数据会触发 winCodeSign-2.6.0 下载，
+    // 默认关闭（本地/CI 打包）：rcedit 改 exe 元数据会触发 winCodeSign-2.6.0 下载，
     // 该 7z 内含 macOS 符号链接，普通用户解压必挂并触发三轮全量重试。
-    // 元数据随后用本地 rcedit 手动补齐；分发构建请移除此行。
-    signAndEditExecutable: false,
+    // 关闭后元数据由 afterPack:patchWindowsExeMetadata 用缓存内 rcedit 补齐，
+    // 图标与版本信息不再依赖 winCodeSign 解压。
+    // 需要 electron-builder 原生签名链路（分发构建）时设 ZCODE_EDIT_WINDOWS_EXE_RESOURCES=1。
+    signAndEditExecutable: shouldEditWindowsExeResources,
   },
   // Windows 工具集用 1.1.0（zip 包）：老版 winCodeSign-2.6.0 的 7z 内含 macOS
   // 符号链接（darwin/10.12/lib/*.dylib），普通用户无 SeCreateSymbolicLinkPrivilege
