@@ -70,6 +70,7 @@ import { PluginsSection } from "@/settings/PluginsSection.js";
 import { HooksSection } from "@/settings/HooksSection.js";
 import { WorkspaceFileSearchSection } from "@/settings/WorkspaceFileSearchSection.js";
 import { MemorySettingsSection } from "@/settings/MemorySettingsSection.js";
+import { CompactSettingsSection } from "@/settings/CompactSettingsSection.js";
 import { BrowserSettingsSection } from "@/settings/BrowserSettingsSection.js";
 import { ComputerUseSection } from "@/settings/ComputerUseSection.js";
 import { ShortcutSettingsSection } from "@/settings/ShortcutSettingsSection.js";
@@ -683,6 +684,8 @@ export function SettingsPage({
   const askUserQuestionAutoResolutionEnabled =
     sharedSettings?.askUserQuestionAutoResolutionEnabled !== false;
   const modelIoFullRetentionEnabled = sharedSettings?.modelIoFullRetentionEnabled === true;
+  // 缺省 100：与 AppSettings schema 默认值一致，表示跟随 CLI 默认压缩策略。
+  const compactThresholdPercent = sharedSettings?.compactThresholdPercent ?? 100;
   const [dataBaseDir, setDataBaseDir] = useState("");
   const [terminalInheritSystemProfile, setTerminalInheritSystemProfile] = useState(true);
   const [terminalFontFamily, setTerminalFontFamily] = useState("");
@@ -918,6 +921,22 @@ export function SettingsPage({
         completed: {
           resultSource: "shared_settings",
           stateAfter: enabled ? "enabled" : "disabled",
+        },
+      });
+    },
+    [updateSharedSettings],
+  );
+  const handleCompactThresholdPercentChange = useCallback(
+    async (value: number) => {
+      await runSettingsActionAsync({
+        featureId: "settings.compact",
+        action: "change_threshold_percent",
+        trigger: "select",
+        operation: () => updateSharedSettings({ compactThresholdPercent: value }),
+        completed: {
+          resultSource: "shared_settings",
+          // 用 enabled/disabled 表达「自定义阈值是否生效」，与埋点值域对齐。
+          stateAfter: value < 100 ? "enabled" : "disabled",
         },
       });
     },
@@ -1912,6 +1931,11 @@ export function SettingsPage({
                               requestPluginStoreOpen({ returnScopeKey: "user", intent });
                               onBack?.();
                             }}
+                          />
+                        ) : activeSection === "compact" ? (
+                          <CompactSettingsSection
+                            thresholdPercent={compactThresholdPercent}
+                            onThresholdPercentChange={handleCompactThresholdPercentChange}
                           />
                         ) : activeSection === "hooks" ? (
                           <HooksSection

@@ -3947,6 +3947,19 @@ const zhCN: Record<string, string> = {
   "settings.commands.title": "命令",
   "settings.commands.description":
     "管理 ZCode Agent 的 .md 命令文件。命令可通过 /command-name 在聊天中调用。",
+  "settings.compact.title": "压缩设置",
+  "settings.compact.description":
+    "配置上下文自动压缩的触发时机。按模型上下文窗口的百分比自定义阈值，避免长会话压缩失败。",
+  "settings.compact.customEnabled": "自定义压缩阈值",
+  "settings.compact.customEnabledDescription":
+    "开启后按上下文窗口占比提前触发自动压缩；关闭时使用默认策略（在窗口上限前预留输出空间后触发）。",
+  "settings.compact.thresholdPercent": "触发阈值",
+  "settings.compact.thresholdPercentDescription":
+    "上下文用量达到完整窗口的该百分比时触发自动压缩。建议 60-80，过小会导致频繁压缩，过大可能贴近窗口上限。",
+  "settings.compact.currentBehavior": "当前行为",
+  "settings.compact.currentBehaviorDescription": "更改后对新会话生效，运行中的会话会立即同步。",
+  "settings.compact.currentBehaviorCustom": "当上下文达到窗口的 {percent}% 时自动压缩",
+  "settings.compact.currentBehaviorDefault": "默认策略：接近窗口上限时自动压缩",
   "settings.commands.sourceFilterLabel": "来源筛选",
   "settings.commands.source.zcodeAgent": "ZCode Agent",
   "settings.commands.add": "新建",

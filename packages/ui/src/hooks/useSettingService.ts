@@ -144,7 +144,8 @@ export function useSettings() {
       await refresh();
       if (
         typeof patch.askUserQuestionAutoResolutionEnabled === "boolean" ||
-        typeof patch.modelIoFullRetentionEnabled === "boolean"
+        typeof patch.modelIoFullRetentionEnabled === "boolean" ||
+        typeof patch.compactThresholdPercent === "number"
       ) {
         const preferences = {
           askUserQuestionAutoResolutionEnabled:
@@ -153,6 +154,10 @@ export function useSettings() {
           modelIoFullRetentionEnabled:
             patch.modelIoFullRetentionEnabled ??
             settingsStore.snapshot.settings?.modelIoFullRetentionEnabled === true,
+          compactThresholdPercent:
+            patch.compactThresholdPercent ??
+            settingsStore.snapshot.settings?.compactThresholdPercent ??
+            100,
         };
         const syncResults = await Promise.allSettled([
           zcodeAgentService.syncAppRuntimePreferences(preferences),

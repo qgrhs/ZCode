@@ -77,6 +77,7 @@ export const SETTINGS_USER_ACTION_FEATURES = {
     "toggle_show_reasoning",
     "toggle_show_todos",
   ],
+  "settings.compact": ["change_threshold_percent"],
   "settings.tool_grouping": [
     "toggle_explore_grouping",
     "toggle_terminal_grouping",

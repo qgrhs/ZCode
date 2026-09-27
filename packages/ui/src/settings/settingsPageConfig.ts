@@ -18,6 +18,7 @@ import {
   WandSparkles,
   Keyboard,
   FileSearch,
+  Gauge,
 } from "lucide-react";
 import { isSettingsSectionEnabled, type SettingsSectionId } from "@/lib/settingsNavigation.js";
 import type { Theme } from "@/useTheme.js";
@@ -107,6 +108,13 @@ const BASE_SETTINGS_SECTIONS: SettingsSectionDefinition[] = [
     id: "commands",
     icon: Terminal,
     titleId: "settings.commands.title",
+    groupId: "agentCapabilities",
+  },
+  // 压缩设置紧随「命令」：同属 Agent 运行时行为配置，收纳在 Agent 能力组。
+  {
+    id: "compact",
+    icon: Gauge,
+    titleId: "settings.compact.title",
     groupId: "agentCapabilities",
   },
   {
