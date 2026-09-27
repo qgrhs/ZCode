@@ -15,7 +15,9 @@ import {
 const ZAI_OAUTH_PROVIDER_CONFIG: Omit<OAuthProviderRuntimeConfig, "appSecret"> = {
   id: ZAI_PROVIDER_ID,
   displayName: "Z.ai",
-  enabled: true,
+  // 同 bigmodelProviderConfig：本 fork 下架智谱官方登录，避免网关 3007 拦截。
+  // 需要恢复时设 ZAI_OAUTH_ENABLED=1。
+  enabled: false,
   order: 1,
   // ZAI 当前 OAuth 授权入口使用 /api/oauth 前缀，继续走 /auth/oauth 会打开旧入口。
   authorizeUrl: "https://chat.z.ai/api/oauth/authorize",

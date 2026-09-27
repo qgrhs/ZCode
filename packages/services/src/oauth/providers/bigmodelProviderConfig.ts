@@ -13,7 +13,9 @@ const BIGMODEL_AUTHORIZE_PATH = "/login";
 const BIGMODEL_OAUTH_PROVIDER_CONFIG: Omit<OAuthProviderRuntimeConfig, "appSecret"> = {
   id: BIGMODEL_PROVIDER_ID,
   displayName: "BigModel",
-  enabled: true,
+  // 本 fork 下架智谱官方登录：官方订阅依赖闭源网关人机验证（captcha）与 OAuth 链路，
+  // 开源构建缺失对应模块、请求会被网关以 3007 拒绝。需要恢复时设 BIGMODEL_OAUTH_ENABLED=1。
+  enabled: false,
   order: 0,
   authorizeUrl: "https://bigmodel.cn/login",
   tokenUrl: "https://zcode.z.ai/api/v1/oauth/token",
