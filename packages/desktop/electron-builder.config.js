@@ -693,6 +693,17 @@ export default {
   win: {
     target: ["nsis"],
     artifactName: buildDesktopArtifactName("win"),
+    // 本地打包临时开关：rcedit 改 exe 元数据会触发 winCodeSign-2.6.0 下载，
+    // 该 7z 内含 macOS 符号链接，普通用户解压必挂并触发三轮全量重试。
+    // 元数据随后用本地 rcedit 手动补齐；分发构建请移除此行。
+    signAndEditExecutable: false,
+  },
+  // Windows 工具集用 1.1.0（zip 包）：老版 winCodeSign-2.6.0 的 7z 内含 macOS
+  // 符号链接（darwin/10.12/lib/*.dylib），普通用户无 SeCreateSymbolicLinkPrivilege
+  // 时 7za 解压返回码 2，被 electron-builder 判为下载失败并触发全量重试。
+  // 新版只分发 Windows 侧 signtool/rcedit，不受该权限限制。
+  toolsets: {
+    winCodeSign: "1.1.0",
   },
   linux: {
     target: ["AppImage", "deb", "rpm", "pacman"],
