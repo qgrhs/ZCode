@@ -85,6 +85,8 @@ export interface ZCodeProtocolSessionRecord {
   memoryEnabled: boolean;
   nativeSearchEnhancementsEnabled: boolean;
   modelContextBudgetStrategy: ZCodeModelContextBudgetStrategy;
+  /** 本会话创建时的自动压缩阈值百分比；fork/继承用它复现父会话的压缩行为。 */
+  compactThresholdPercent: number;
   createdAt: number;
   deliveryKind?: ZCodeDeliveryKind;
   /**
@@ -132,6 +134,8 @@ export interface ZCodeProtocolAgentServerContext {
   appRuntimePreferences: {
     askUserQuestionAutoResolutionEnabled: boolean;
     modelIoFullRetentionEnabled: boolean;
+    /** host 同步的自动压缩阈值百分比；100 表示默认策略，新建会话创建时读取。 */
+    compactThresholdPercent: number;
     /** host 同步的 Off-Peak 工具面门禁；缺省 false（fail-closed），供 v4 冷恢复等无 host 参数的路径读取。 */
     offPeakToolEnabled: boolean;
     /**
