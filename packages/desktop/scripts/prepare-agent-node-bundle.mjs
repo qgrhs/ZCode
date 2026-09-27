@@ -11,13 +11,14 @@
 //
 // 远端（SSH/WSL/Docker）没有 Electron，仍走 prepare:remote-assets 的原生二进制，互不影响。
 
-import { cpSync, existsSync, mkdirSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { access, cp, mkdir } from "node:fs/promises";
 import { basename, dirname, resolve } from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { runCommand } from "../../../scripts/spawn-command.mjs";
 import { stageAgentBundle } from "./stage-agent-bundle.mjs";
+import { stageLocalOfficialPlugins, stagePluginDirectory } from "./stage-official-plugins.mjs";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const desktopRoot = resolve(scriptDir, "..");
@@ -126,22 +127,9 @@ const bundledSkillPack = {
   stagedPath: "packages/bundled-skills",
   topLevelPaths: ["skills"],
 };
-const includedOfficialPluginTopLevelPaths = new Set([
-  ".mcp.json",
-  ".zcode-plugin",
-  "README.md",
-  // Electron 生产资源复制有独立白名单，遗漏 agents 会让首启 filesystem seed 永久缺少子代理。
-  "agents",
-  "commands",
-  "dist",
-  "docs",
-  "hooks",
-  "output-styles",
-  "package.json",
-  "scripts",
-  "skills",
-  "templates",
-]);
+// 官方插件进入安装包的顶层白名单已收敛到 stage-official-plugins.mjs 单一来源，
+// 保证打包链与 dev 链共用同一份复制规则（此前两份平行清单互相漂移，才让 12 个
+// 本地插件副本全部漏打包）。
 const excludedOfficialPluginAssetNames = new Set([
   ".DS_Store",
   ".venv",
@@ -235,25 +223,14 @@ function stageBundle() {
 }
 
 function stageOfficialPlugins() {
+  // 随仓库分发的两个插件走显式清单：它们带 runtime 构建与 seed 校验，不能只靠扫描。
   for (const plugin of officialPluginPackages) {
-    const sourceRoot = resolve(repoRoot, plugin.relativePath);
-    const manifestPath = resolve(sourceRoot, ".zcode-plugin", "plugin.json");
-    if (!existsSync(manifestPath)) {
-      throw new Error(`[prepare:agent-bundle] missing official plugin manifest: ${manifestPath}`);
-    }
-
-    const targetRoot = resolve(glmDir, plugin.stagedPath);
-    mkdirSync(targetRoot, { recursive: true });
-    for (const entryName of includedOfficialPluginTopLevelPaths) {
-      const sourcePath = resolve(sourceRoot, entryName);
-      if (!existsSync(sourcePath)) continue;
-      cpSync(sourcePath, resolve(targetRoot, entryName), {
-        recursive: true,
-        filter: shouldCopyOfficialPluginAsset,
-      });
-    }
+    stagePluginDirectory({
+      sourceRoot: resolve(repoRoot, plugin.relativePath),
+      targetRoot: resolve(glmDir, plugin.stagedPath),
+    });
     for (const relativePath of plugin.requiredSeedPaths ?? []) {
-      const stagedAssetPath = resolve(targetRoot, ...relativePath.split("/"));
+      const stagedAssetPath = resolve(glmDir, plugin.stagedPath, ...relativePath.split("/"));
       if (!existsSync(stagedAssetPath)) {
         throw new Error(
           `[prepare:agent-bundle] missing staged official plugin seed asset: ${stagedAssetPath}`,
@@ -262,6 +239,17 @@ function stageOfficialPlugins() {
     }
     console.log(`[prepare:agent-bundle] staged official plugin ${plugin.stagedPath}`);
   }
+
+  // 其余官方插件受许可证约束不进仓库，只以本地副本存在（.git/info/exclude）。
+  // 有副本就 stage，没有就跳过——CI 干净检出走后者，本地打包走前者。
+  stageLocalOfficialPlugins({
+    repoRoot,
+    platformKey,
+    skipDirNames: officialPluginPackages.map((plugin) => {
+      const segments = plugin.relativePath.split("/");
+      return segments[segments.length - 1];
+    }),
+  });
 }
 
 async function stageBundledSkillPack() {

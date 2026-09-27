@@ -3,6 +3,7 @@ import { access } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { stageAgentBundle } from "../packages/desktop/scripts/stage-agent-bundle.mjs";
+import { stageLocalOfficialPlugins } from "../packages/desktop/scripts/stage-official-plugins.mjs";
 import { runCommand } from "./spawn-command.mjs";
 
 // adapters tsc 在内存受限机器上会 OOM（exit 134），给整条构建链路提高堆上限。
@@ -92,9 +93,34 @@ async function verifyRequiredDevPluginRuntimeArtifacts() {
  * dev 只跑宿主平台，所以 platformKey 直接取 process；打包链的跨平台 target 由它自己解析。
  */
 function stageDevAgentBundle() {
+  const platformKey = `${process.platform}-${process.arch}`;
   stageAgentBundle({
     repoRoot,
-    platformKey: `${process.platform}-${process.arch}`,
+    platformKey,
+  });
+  // stageAgentBundle 会整目录重建 glm：官方插件也在 glm/packages 下，必须同步补齐，
+  // 否则 dev 首启的 filesystem seed 只能看到 agent bundle，内置插件全线消失。
+  // 随仓库分发的两个插件要求先构建出 MCP runtime（缺 runtime 时 seed 会判为残缺并拒绝写缓存），
+  // bootstrap:with-remote 路径不构建它们，因此先按真实产物判断就绪性，再决定是否 stage。
+  const packagesRoot = resolve(repoRoot, "apps/zcode-cli/packages");
+  const runtimeBackedPlugins = [
+    { dirName: "browser-use-plugin", artifactPath: "browser-use-plugin/scripts/browser-client.mjs" },
+    { dirName: "node-repl-host", artifactPath: "node-repl-host/dist/mcp/server.js" },
+  ];
+  const skippedDirNames = runtimeBackedPlugins
+    .filter((plugin) => !existsSync(resolve(packagesRoot, plugin.artifactPath)))
+    .map((plugin) => plugin.dirName);
+  if (skippedDirNames.length > 0) {
+    // 缺 runtime 的插件不 stage：seed 端会把它判为“种子残缺”并拒绝写缓存，
+    // 提前跳过能避免把半成品带进 dev 的插件目录。
+    console.log(
+      `[build-desktop-agent-cli] skip staging plugins without runtime: ${skippedDirNames.join(", ")}`,
+    );
+  }
+  stageLocalOfficialPlugins({
+    repoRoot,
+    platformKey,
+    skipDirNames: skippedDirNames,
   });
 }
 
