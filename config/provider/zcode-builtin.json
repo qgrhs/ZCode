@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "revision": 30,
+  "revision": 31,
   "config": {
     "providerConfigRules": {
       "templateRules": [
@@ -345,6 +345,32 @@
               "gpt-5.4-mini",
               "gpt-5.4-nano",
               "gpt-5.3-codex"
+            ],
+            "logo": {
+              "type": "builtin",
+              "key": "openai"
+            }
+          }
+        },
+        {
+          "templateId": "command-code",
+          "templateNameMap": {
+            "zh-CN": "Command Code",
+            "en-US": "Command Code"
+          },
+          "config": {
+            "access": {
+              "type": "api-key",
+              "apiKeyManagementUrl": "https://commandcode.ai"
+            },
+            "api": {
+              "type": "openai-responses",
+              "baseUrl": "https://api.commandcode.ai/provider/v1"
+            },
+            "builtinModelIds": [
+              "deepseek/deepseek-v4.1-flash",
+              "deepseek/deepseek-v4-flash",
+              "gpt-6-luna"
             ],
             "logo": {
               "type": "builtin",
@@ -6020,6 +6046,45 @@
           "modelId": "qwen/qwen3.8-max-0902",
           "config": {
             "enabled": false
+          }
+        },
+        {
+          "templateId": "command-code",
+          "modelId": "deepseek/deepseek-v4.1-flash",
+          "config": {
+            "enabled": true
+          }
+        },
+        {
+          "templateId": "command-code",
+          "modelId": "deepseek/deepseek-v4-flash",
+          "config": {
+            "enabled": true
+          }
+        },
+        {
+          "templateId": "command-code",
+          "modelId": "gpt-6-luna",
+          "config": {
+            "enabled": true,
+            "properties": {
+              "contextWindow": 1050000,
+              "inputFormat": {
+                "supportsImage": true,
+                "supportsVideo": false,
+                "supportsAudio": false,
+                "supportsPdf": true
+              },
+              "supportsJsonSchemaOutput": true
+            },
+            "optionSpecs": {
+              "reasoningLevel": {
+                "values": ["none", "low", "medium", "high", "xhigh", "max"]
+              },
+              "maxOutputTokens": {
+                "max": 128000
+              }
+            }
           }
         }
       ],
